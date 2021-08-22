@@ -1,0 +1,1 @@
+export const workersAPI = "https://interview-mock.herokuapp.com/api/workers/"

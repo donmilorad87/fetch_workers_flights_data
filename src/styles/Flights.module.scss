@@ -1,0 +1,77 @@
+* {
+    padding: 8px;
+    border: 1px solid #e7e7e7;
+    box-sizing: border-box;
+    border-radius: 6px;
+}
+
+.Flights {
+    display: grid;
+    
+    table {
+        width: 100%;
+
+        thead {
+            th {
+                background-color: #e7e7e7;
+            }
+        }
+
+        tbody:not(.noHover){
+            tr {
+                &:hover {
+                    background-color: #a1a1a1;
+                    cursor: pointer;
+                }
+                
+            }
+      
+        }
+
+        td,
+        th {
+            padding: 8px;
+        }
+    }
+
+    .gray {
+        background-color: #e7e7e7;
+    }
+
+    .active {
+        background-color: #a1a1a1;
+    }
+
+    nav {
+        grid-area: nav;
+    }
+
+    aside {
+        grid-area: asi;
+    }
+
+    main {
+        grid-area: main;
+    }
+    
+}
+
+@media (min-width: 0px) {
+    .Flights {
+        display: grid;
+        grid-template-areas:
+            "nav"
+            "main"
+            "asi";
+    }
+}
+
+@media (min-width: 920px) {
+    .Flights {
+        grid-template-areas: "nav main asi";
+        grid-template-columns: 25% 50% 25%;
+        main {
+            margin: 0 8px;
+        }
+    }
+}

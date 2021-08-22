@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        * {
+            padding: 8px;
+            border: 1px solid #e7e7e7;
+            box-sizing: border-box;
+            border-radius: 6px;
+        }
+
+        html {
+            padding: 0px;
+        }
+
+        table {
+            width: 100%;
+            text-align: left;
+        }
+
+        thead th {
+            background-color: #e7e7e7;
+        }
+        #table_body_workers tr:hover, #table_body_worker_flight_details tr:hover{
+            background-color: #a1a1a1;
+            cursor: pointer;
+        }
+        .gray {
+            background-color: #e7e7e7;
+        }
+
+        .active {
+            background-color: #a1a1a1;
+        }
+
+        nav {
+            grid-area: nav;
+        }
+
+        aside {
+            grid-area: asi;
+        }
+
+        main {
+            grid-area: main;
+        }
+
+        @media (min-width:0px) {
+            body {
+                display: grid;
+                grid-template-areas: "nav"
+                    "main"
+                    "asi";
+            }
+        }
+
+        @media (min-width:920px) {
+            body {
+                grid-template-areas: "nav main asi";
+                grid-template-columns: 25% 50% 25%;
+            }
+
+            main {
+                margin: 0 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <body>
+        <nav>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Workers</th>
+                    </tr>
+                </thead>
+                <tbody id="table_body_workers">
+                </tbody>
+            </table>
+        </nav>
+        <main>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Flight Number</th>
+                        <th>Origin</th>
+                        <th>Origin Date</th>
+                        <th>Destination</th>
+                        <th>Destination Date</th>
+                    </tr>
+                </thead>
+                <tbody id="table_body_worker_flight_details">
+                </tbody>
+            </table>
+        </main>
+        <aside>
+            <table>
+                <tbody id="table_body_worker_fligts_extra_details">
+                    <tr>
+                        <th class="gray">Plane Number</th>
+                        <th id="plane"></th>
+                    </tr>
+                    <tr>
+                        <th class="gray">Duration of flight</th>
+                        <th id="duration"></th>
+                    </tr>
+                    <tr>
+                        <th class="gray">Origin gate</th>
+                        <th id="from_gate"></th>
+                    </tr>
+                    <tr>
+                        <th class="gray">Destination gate</th>
+                        <th id="to_gate"></th>
+                    </tr>
+                </tbody>
+            </table>
+        </aside>
+    </body>
+</body>
+<script>
+    async function fetcher(url){
+        try {
+            const response = await fetch(url)
+            return await response.json()
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    function get_data(url, callback) {
+        document.documentElement.style.cursor = 'progress'
+        fetcher(url).then((response) => {
+            callback(response)
+        })
+    }
+    function render_workers(workers) {
+        for (let i = 0; i < workers.length; i++) {
+            let worker_tr = document.createElement('tr')
+            let worker_th = document.createElement('th')
+            worker_th.textContent = workers[i].name
+            worker_th.dataset.id = workers[i].id
+            worker_th.addEventListener('click', get_worker_details)
+            worker_tr.appendChild(worker_th)
+            table_body_workers.appendChild(worker_tr)
+        }
+        lastClicked = table_body_workers.getElementsByTagName('th')[0]
+        get_data('https://interview-mock.herokuapp.com/api/workers/' + lastClicked.dataset.id, render_worker_details)
+    }
+    function render_worker_details(worker_details) {
+       
+        for (let i = 0; i < worker_details.length; i++) {
+            let worker_details_tr = document.createElement('tr')
+            let flightNumber = document.createElement('th')
+            flightNumber.textContent = worker_details[i].num
+            worker_details_tr.appendChild(flightNumber)
+            let origin = document.createElement('th')
+            origin.textContent = worker_details[i].from
+            worker_details_tr.appendChild(origin)
+            let origin_date = document.createElement('th')
+            origin_date.textContent = worker_details[i].from_date
+            worker_details_tr.appendChild(origin_date)
+            let destination = document.createElement('th')
+            destination.textContent = worker_details[i].to
+            worker_details_tr.appendChild(destination)
+            let destination_date = document.createElement('th')
+            destination_date.textContent = worker_details[i].to_date
+            worker_details_tr.appendChild(destination_date)
+            worker_details_tr.dataset.plane = worker_details[i].plane
+            worker_details_tr.dataset.duration = worker_details[i].duration
+            worker_details_tr.dataset.from_gate = worker_details[i].from_gate
+            worker_details_tr.dataset.to_gate = worker_details[i].to_gate
+            i === 0 ? set_worker_additional_details([worker_details_tr, worker_details[i].plane, worker_details[i].duration, worker_details[i].from_gate, worker_details[i].to_gate]) : false
+            worker_details_tr.addEventListener('click', get_worker_aditional_details)
+            table_body_worker_flight_details.appendChild(worker_details_tr)
+        }
+    }
+    function get_worker_aditional_details(e) {
+        let target = e.target.parentElement
+        target.parentElement.getElementsByClassName('active')[0] ? target.parentElement.getElementsByClassName('active')[0].classList.remove('active') : false
+        set_worker_additional_details([target, target.dataset.plane, target.dataset.duration, target.dataset.from_gate, target.dataset.to_gate])
+    }
+    function set_worker_additional_details(additional_details) {
+        additional_details[0].classList.add('active')
+        document.getElementById('plane').textContent = additional_details[1]
+        document.getElementById('duration').textContent = convert_minutes_amount_to_time_string(additional_details[2])
+        document.getElementById('from_gate').textContent = additional_details[3]
+        document.getElementById('to_gate').textContent = additional_details[4]
+        table_body_worker_fligts_extra_details.style.display = 'block'
+
+    }
+    function get_worker_details(e) {
+        table_body_worker_fligts_extra_details.style.display = 'none'
+        e.target.parentElement.parentElement.getElementsByClassName('active')[0] ?  e.target.parentElement.parentElement.getElementsByClassName('active')[0].classList.remove('active') : false
+        e.target.classList.add('active')
+        while (table_body_worker_flight_details.firstChild) { table_body_worker_flight_details.removeChild(table_body_worker_flight_details.firstChild) }
+        get_data('https://interview-mock.herokuapp.com/api/workers/' +  e.target.dataset.id, render_worker_details)
+    }
+    function convert_minutes_amount_to_time_string(minutes_amount) {
+        let time = new Date(minutes_amount * 60 * 1000)
+        return time.getUTCHours() + 'h ' + time.getUTCMinutes() + 'm'
+    }
+    (function () {
+        let lastClicked, table_body_worker_flight_details = document.getElementById('table_body_worker_flight_details'), table_body_worker_fligts_extra_details = document.getElementById('table_body_worker_fligts_extra_details'), table_body_workers = document.getElementById('table_body_workers')
+        get_data('https://interview-mock.herokuapp.com/api/workers/', render_workers)
+    })()
+</script>
+
+</html>
